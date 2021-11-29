@@ -430,7 +430,7 @@ module.exports = {
   getAllAssignment: async (req, res, next) => {
     const course = await Course.findOne({
       slug: req.params.slug,
-    });
+    }).populate('assignments');
     if (course) {
       if (
         course.students.toString().includes(req.user.id) ||
