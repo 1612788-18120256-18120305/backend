@@ -573,14 +573,6 @@ module.exports = {
       });
       return;
     }
-    if (!course.teachers.toString().includes(req.user._id)) {
-      res.json({
-        code: res.statusCode,
-        success: false,
-        message: 'Unauthorized',
-      });
-      return;
-    }
     const assignments = await Assignment.find({ course: course._id });
     res.json({
       code: res.statusCode,
