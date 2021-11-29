@@ -66,7 +66,8 @@ module.exports = {
     const course = await Course.findOne({ slug: req.params.slug })
       .populate('teachers')
       .populate('students')
-      .populate('owner');
+      .populate('owner')
+      .populate('assignments');
 
     if (course) {
       if (
@@ -96,12 +97,15 @@ module.exports = {
     const course = await Course.findById(req.params.id);
     if (course) {
       // check owner
-      if (course.owner === req.user.id) {
+      if (course.teachers.toString().includes(req.user.id)) {
         if (req.body.name) {
           course.name = req.body.name;
         }
         if (req.body.description) {
           course.description = req.body.description;
+        }
+        if (req.body.assignments) {
+          course.assignments = req.body.assignments;
         }
         course
           .save()
