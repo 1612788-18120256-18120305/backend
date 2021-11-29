@@ -1,23 +1,23 @@
-const authenticate = require("../authenticate");
-const express = require("express");
-const courseController = require("../controllers/CourseController");
+const authenticate = require('../authenticate');
+const express = require('express');
+const courseController = require('../controllers/CourseController');
 
 const router = express.Router();
 
 router
-  .post("/store", authenticate.verifyUser, courseController.createCourse)
-  .get("/:slug", authenticate.verifyUser, courseController.getCourse)
-  .put("/:id", authenticate.verifyUser, courseController.updateCourse)
-  .delete("/:id", authenticate.verifyUser, courseController.deleteCourse)
-  .get("/", authenticate.verifyUser, courseController.getCourses);
+  .post('/store', authenticate.verifyUser, courseController.createCourse)
+  .get('/:slug', authenticate.verifyUser, courseController.getCourse)
+  .put('/:id', authenticate.verifyUser, courseController.updateCourse)
+  .delete('/:id', authenticate.verifyUser, courseController.deleteCourse)
+  .get('/', authenticate.verifyUser, courseController.getCourses);
 
-router.get("/join/:id", authenticate.verifyUser, courseController.joinCourse);
+router.get('/join/:id', authenticate.verifyUser, courseController.joinCourse);
 
 router
-  .route("/invite")
+  .route('/invite')
   .post(authenticate.verifyUser, courseController.inviteUser);
 router.get(
-  "/:id/invitation",
+  '/:id/invitation',
   authenticate.verifyUser,
   courseController.getDefaultInvitation
 );
@@ -29,9 +29,27 @@ router.get(
  * }
  */
 router.post(
-  "/:id/invitation",
+  '/:id/invitation',
   authenticate.verifyUser,
   courseController.createInvitation
 );
+
+router
+  .get('/:slug/assignment/:id', courseController.getAssignments)
+  .post(
+    '/:slug/assignment/:id',
+    authenticate.verifyUser,
+    courseController.addAssignment
+  )
+  .patch(
+    '/:slug/assignment/:id',
+    authenticate.verifyUser,
+    courseController.updateAssignment
+  )
+  .delete(
+    '/:slug/assignment/:id',
+    authenticate.verifyUser,
+    courseController.deleteAssignment
+  );
 
 module.exports = router;

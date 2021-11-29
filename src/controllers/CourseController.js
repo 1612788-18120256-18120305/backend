@@ -4,6 +4,7 @@ const { email, CLIENT_URL } = require('../config/mainConfig');
 const Invitation = require('../models/Invitation.js');
 const { nanoid } = require('nanoid');
 const User = require('../models/User');
+const Assignment = require('../models/Assignment');
 
 const createDefaultInvitation = (courseId) => {
   const newInvitation = new Invitation({
@@ -97,7 +98,7 @@ module.exports = {
     const course = await Course.findById(req.params.id);
     if (course) {
       // check owner
-      if (course.teachers.toString().includes(req.user.id)) {
+      if (course.teachers.toString().includes(req.user._id)) {
         if (req.body.name) {
           course.name = req.body.name;
         }
@@ -424,5 +425,168 @@ module.exports = {
         message: err.message,
       });
     }
+  },
+
+  addAssignment: async (req, res, next) => {
+    const course = await Course.findOne({ slug: req.params.slug });
+    if (!course) {
+      res.json({
+        code: res.statusCode,
+        success: false,
+        message: 'Course not found',
+      });
+      return;
+    }
+    if (!course.teachers.toString().includes(req.user._id)) {
+      res.json({
+        code: res.statusCode,
+        success: false,
+        message: 'Unauthorized',
+      });
+      return;
+    }
+    const { name, point } = req.body;
+    const newAssignment = new Assignment({
+      name,
+      point,
+    });
+    try {
+      await newAssignment.save();
+      course.assignments.push(newAssignment._id);
+      await course.save();
+      res.json({
+        code: res.statusCode,
+        success: true,
+        message: 'Assignment added successfully',
+        assignment: newAssignment,
+      });
+    } catch (err) {
+      res.json({
+        code: res.statusCode,
+        success: false,
+        message: err.message,
+      });
+    }
+  },
+
+  updateAssignment: async (req, res, next) => {
+    const course = await Course.findOne({ slug: req.params.slug });
+    if (!course) {
+      res.json({
+        code: res.statusCode,
+        success: false,
+        message: 'Course not found',
+      });
+      return;
+    }
+    if (!course.teachers.toString().includes(req.user._id)) {
+      res.json({
+        code: res.statusCode,
+        success: false,
+        message: 'Unauthorized',
+      });
+      return;
+    }
+    const { name, point } = req.body;
+    const assignment = await Assignment.findById(req.params.id);
+    if (!assignment) {
+      res.json({
+        code: res.statusCode,
+        success: false,
+        message: 'Assignment not found',
+      });
+      return;
+    }
+    assignment.name = name;
+    assignment.point = point;
+    try {
+      await assignment.save();
+      res.json({
+        code: res.statusCode,
+        success: true,
+        message: 'Assignment updated successfully',
+        assignment: assignment,
+      });
+    } catch (err) {
+      res.json({
+        code: res.statusCode,
+        success: false,
+        message: err.message,
+      });
+    }
+  },
+
+  deleteAssignment: async (req, res, next) => {
+    const course = await Course.findOne({ slug: req.params.slug });
+    if (!course) {
+      res.json({
+        code: res.statusCode,
+        success: false,
+        message: 'Course not found',
+      });
+      return;
+    }
+    if (!course.teachers.toString().includes(req.user._id)) {
+      res.json({
+        code: res.statusCode,
+        success: false,
+        message: 'Unauthorized',
+      });
+      return;
+    }
+    const assignment = await Assignment.findById(req.params.id);
+    if (!assignment) {
+      res.json({
+        code: res.statusCode,
+        success: false,
+        message: 'Assignment not found',
+      });
+      return;
+    }
+    try {
+      course.assignments = course.assignments.filter(
+        (assignmentId) => assignmentId.toString() !== assignment._id.toString()
+      );
+      await course.save();
+      await Assignment.deleteOne({ _id: assignment._id });
+      res.json({
+        code: res.statusCode,
+        success: true,
+        message: 'Assignment deleted successfully',
+      });
+    } catch (err) {
+      res.json({
+        code: res.statusCode,
+        success: false,
+        message: err.message,
+      });
+    }
+  },
+
+  getAssignments: async (req, res, next) => {
+    const course = await Course.findOne({ slug: req.params.slug });
+    if (!course) {
+      res.json({
+        code: res.statusCode,
+        success: false,
+        message: 'Course not found',
+      });
+      return;
+    }
+    if (!course.teachers.toString().includes(req.user._id)) {
+      res.json({
+        code: res.statusCode,
+        success: false,
+        message: 'Unauthorized',
+      });
+      return;
+    }
+    const assignments = await Assignment.find({ course: course._id });
+    res.json({
+      code: res.statusCode,
+      success: true,
+      message: 'Assignments found',
+      assignments,
+    });
   },
 };
