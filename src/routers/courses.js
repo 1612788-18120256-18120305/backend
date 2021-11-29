@@ -35,12 +35,19 @@ router.post(
 );
 
 router
-  .get('/:slug/assignment/:id', courseController.getAssignments)
+  .get(
+    '/:slug/assignment',
+    authenticate.verifyUser,
+    courseController.getAllAssignment
+  )
   .post(
-    '/:slug/assignment/:id',
+    '/:slug/assignment',
     authenticate.verifyUser,
     courseController.addAssignment
-  )
+  );
+
+router
+  .get('/:slug/assignment/:id', courseController.getAssignments)
   .patch(
     '/:slug/assignment/:id',
     authenticate.verifyUser,

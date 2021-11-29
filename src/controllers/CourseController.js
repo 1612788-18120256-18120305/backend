@@ -427,6 +427,37 @@ module.exports = {
     }
   },
 
+  getAllAssignment: async (req, res, next) => {
+    const course = await Course.findOne({
+      slug: req.params.slug,
+    });
+    if (course) {
+      if (
+        course.students.toString().includes(req.user.id) ||
+        course.teachers.toString().includes(req.user.id) ||
+        course.owner.id === req.user.id
+      ) {
+        res.json({
+          code: res.statusCode,
+          success: true,
+          assignments: course.assignments,
+        });
+      } else {
+        res.json({
+          code: res.statusCode,
+          success: false,
+          message: 'You are not allowed to access this course',
+        });
+      }
+    } else {
+      res.json({
+        code: res.statusCode,
+        success: false,
+        message: 'Course not found',
+      });
+    }
+  },
+
   addAssignment: async (req, res, next) => {
     const course = await Course.findOne({ slug: req.params.slug });
     if (!course) {
