@@ -10,6 +10,13 @@ const Assignment = new Schema(
     point: {
       type: Number,
     },
+    grades: [
+      {
+        id: { type: String },
+        grade: { type: Number },
+        draft: { type: Boolean, default: true },
+      },
+    ],
   },
   { timestamps: true }
 );

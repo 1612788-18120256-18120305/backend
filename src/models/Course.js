@@ -26,6 +26,7 @@ const Course = new Schema(
       required: true,
     },
     assignments: [{ type: Schema.Types.ObjectId, ref: 'Assignment' }],
+    studentIds: [{ type: String }],
   },
   {
     timestamps: true,

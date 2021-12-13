@@ -1,4 +1,5 @@
 const authenticate = require('../authenticate');
+const courseMiddleware = require('../middlewares/courses');
 const express = require('express');
 const courseController = require('../controllers/CourseController');
 
@@ -58,5 +59,55 @@ router
     authenticate.verifyUser,
     courseController.deleteAssignment
   );
+
+router.post(
+  '/:slug/assignment/:id/grade',
+  [
+    authenticate.verifyUser,
+    courseMiddleware.getCourseBySlug,
+    courseMiddleware.requireTeacher,
+  ],
+  courseController.setSingleStudentGrade
+);
+
+router.post(
+  '/:slug/assignment/:id/upload',
+  [
+    authenticate.verifyUser,
+    courseMiddleware.getCourseBySlug,
+    courseMiddleware.requireTeacher,
+  ],
+  courseController.setMultipleStudentGrades
+);
+
+router.post(
+  '/:slug/assignment/:id/finalize',
+  [
+    authenticate.verifyUser,
+    courseMiddleware.getCourseBySlug,
+    courseMiddleware.requireTeacher,
+  ],
+  courseController.setSingleGradeFinalize
+);
+
+router.post(
+  '/:slug/assignment/:id/finalizemultiple',
+  [
+    authenticate.verifyUser,
+    courseMiddleware.getCourseBySlug,
+    courseMiddleware.requireTeacher,
+  ],
+  courseController.setMultipleGradeFinalize
+);
+
+router.post(
+  '/:slug/assignment/studentid',
+  [
+    authenticate.verifyUser,
+    courseMiddleware.getCourseBySlug,
+    courseMiddleware.requireTeacher,
+  ],
+  courseController.setCourseStudentIds
+);
 
 module.exports = router;

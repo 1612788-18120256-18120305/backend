@@ -612,4 +612,236 @@ module.exports = {
       assignments,
     });
   },
+
+  setCourseStudentIds: async (req, res, next) => {
+    const course = req.course;
+    const { studentIds } = req.body;
+    studentIds = _.uniq(studentIds);
+    try {
+      if (!studentIds) {
+        course.studentIds = studentIds;
+        await course.save();
+      } else {
+        await Course.updateOne(course._id, {
+          studentIds: {
+            $addToSet: studentIds,
+          },
+        });
+      }
+      res.json({
+        code: 200,
+        success: true,
+        message: 'Student ids set successfully',
+      });
+    } catch (err) {
+      res.json({
+        code: 500,
+        success: false,
+        message: err.message,
+      });
+    }
+  },
+
+  setSingleStudentGrade: async (req, res, next) => {
+    const course = req.course;
+    const { studentId, grade } = req.body;
+    const assignmentId = req.params.id;
+    if (!course.studentIds.includes(studentId)) {
+      res.json({
+        code: res.statusCode,
+        success: false,
+        message: 'Student is not in this class',
+      });
+      return;
+    }
+    const assignment = await Assignment.findById(assignmentId);
+    if (!assignment) {
+      res.json({
+        code: res.statusCode,
+        success: false,
+        message: 'Assignment not found',
+      });
+      return;
+    }
+    const filterAssignment = assignment.grades.filter((item) => {
+      return item.id.toString() === studentId.toString();
+    });
+    if (filterAssignment.length > 0) {
+      for (let i = 0; i < assignment.grades.length; i++) {
+        if (assignment.grades[i].id.toString() === studentId.toString()) {
+          assignment.grades[i].grade = grade;
+        }
+      }
+    } else {
+      const item = {
+        id: studentId,
+        grade,
+      };
+      assignment.grades.push(item);
+    }
+    try {
+      await assignment.save();
+      res.json({
+        code: res.statusCode,
+        success: true,
+        message: 'Grade set successfully',
+      });
+    } catch (err) {
+      res.json({
+        code: res.statusCode,
+        success: false,
+        message: err.message,
+      });
+    }
+  },
+
+  setMultipleStudentGrades: async (req, res, next) => {
+    const course = req.course;
+    const id = req.params.id;
+    const { grades } = req.body;
+    const studentIds = course.studentIds;
+    const assignment = await Assignment.findById(id);
+    if (!assignment) {
+      res.json({
+        code: res.statusCode,
+        success: false,
+        message: 'Assignment not found',
+      });
+      return;
+    }
+    const filteredGrades = grades.filter((item) => {
+      if (studentIds.includes(item.id)) {
+        return item;
+      }
+    });
+    assignment.grades = filteredGrades;
+    try {
+      await assignment.save();
+      res.json({
+        code: res.statusCode,
+        success: true,
+        message: 'Grades set successfully',
+      });
+    } catch (err) {
+      res.json({
+        code: res.statusCode,
+        success: false,
+        message: err.message,
+      });
+    }
+  },
+
+  setMultipleGradeFinalize: async (req, res, next) => {
+    const id = req.params.id;
+    const course = req.course;
+    const studentIds = course.studentIds;
+    const assignment = await Assignment.findById(id);
+    if (!assignment || !studentIds) {
+      return res.json({
+        code: res.statusCode,
+        success: false,
+        message: 'Assignment not found',
+      });
+    }
+    const grades = assignment.grades;
+    const filteredStudentIds = studentIds.filter((studentId) => {
+      const filterGrade = grades.find((grade) => {
+        if (studentId.toString() === grade.id.toString()) {
+          return true;
+        }
+        return false;
+      });
+      if (filterGrade) {
+        return false;
+      }
+      return true;
+    });
+    const newGrades = filteredStudentIds.map((item) => {
+      return {
+        id: item,
+        grade: 0,
+        draft: false,
+      };
+    });
+    for (let i = 0; i < grades.length; i++) {
+      grades[i].draft = false;
+    }
+    grades = grades.concat(newGrades);
+    assignment.grades = grades;
+    try {
+      await assignment.save();
+      res.json({
+        code: res.statusCode,
+        success: true,
+        message: 'Finalize grades set successfully',
+      });
+    } catch (err) {
+      res.json({
+        code: res.statusCode,
+        success: false,
+        message: err.message,
+      });
+    }
+  },
+
+  setSingleGradeFinalize: async (req, res, next) => {
+    const id = req.params.id;
+    const course = req.course;
+    const studentId = req.body.studentId;
+    const studentIds = course.studentIds;
+    if (!studentIds.includes(studentId)) {
+      return res.json({
+        code: res.statusCode,
+        success: false,
+        message: 'Student is not in this class',
+      });
+    }
+    const assignment = await Assignment.findById(id);
+    if (!assignment) {
+      return res.json({
+        code: res.statusCode,
+        success: false,
+        message: 'Assignment not found',
+      });
+    }
+    const grades = assignment.grades;
+    if (!grades) {
+      grades = [];
+      assignment.grades = grades;
+    }
+    const mapGrade = grades.find((item) => {
+      if (item.id.toString() === studentId.toString()) {
+        return true;
+      }
+      return false;
+    });
+    if (mapGrade) {
+      mapGrade.draft = false;
+    } else {
+      mapGrade = {
+        id: studentId,
+        grade: 0,
+        draft: false,
+      };
+    }
+    for (let i = 0; i < grades.length; i++) {
+      if (assignment.grades[i].id.toString() === mapGrade.id.toString()) {
+        assignment.grades[i] = mapGrade;
+      }
+    }
+    try {
+      await assignment.save();
+      res.json({
+        code: res.statusCode,
+        success: true,
+        message: 'Finalize grade set successfully',
+      });
+    } catch (err) {
+      res.json({
+        code: 500,
+        success: false,
+        message: err.message,
+      });
+    }
+  },
 };
