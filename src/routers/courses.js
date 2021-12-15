@@ -35,6 +35,7 @@ router.post(
   courseController.createInvitation
 );
 
+
 router
   .get(
     '/:slug/assignment',

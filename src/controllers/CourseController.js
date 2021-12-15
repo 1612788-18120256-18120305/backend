@@ -5,6 +5,7 @@ const Invitation = require('../models/Invitation.js');
 const { nanoid } = require('nanoid');
 const User = require('../models/User');
 const Assignment = require('../models/Assignment');
+const _ = require('lodash');
 
 const createDefaultInvitation = (courseId) => {
   const newInvitation = new Invitation({
@@ -615,17 +616,18 @@ module.exports = {
 
   setCourseStudentIds: async (req, res, next) => {
     const course = req.course;
-    const { studentIds } = req.body;
+    let { studentIds } = req.body;
     studentIds = _.uniq(studentIds);
+    console.log(studentIds);
     try {
       if (!studentIds) {
         course.studentIds = studentIds;
         await course.save();
       } else {
-        await Course.updateOne(course._id, {
-          studentIds: {
-            $addToSet: studentIds,
-          },
+        await Course.updateOne({_id: course._id}, {
+          $addToSet : {
+            studentIds: studentIds
+          }
         });
       }
       res.json({
