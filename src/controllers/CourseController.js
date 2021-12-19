@@ -596,7 +596,8 @@ module.exports = {
   },
 
   getAssignments: async (req, res, next) => {
-    const course = await Course.findOne({ slug: req.params.slug });
+    const course = req.course;
+    const id = req.params.id;
     if (!course) {
       res.json({
         code: res.statusCode,
@@ -605,20 +606,43 @@ module.exports = {
       });
       return;
     }
-    const assignments = await Assignment.find({ course: course._id });
+    const assignment = await Assignment.findById(id, null, { lean: true });
+    if (!assignment) {
+      res.json({
+        code: res.statusCode,
+        success: false,
+        message: 'Assignment not found',
+      });
+      return;
+    }
     if (!req.isTeacher) {
+      if (req.isMapped) {
+        assignment.grades = assignment.grades.find((grade) => {
+          if (
+            grade.id.toString() === req.user.student.toString() &&
+            !grade.draft
+          )
+            return true;
+        });
+        return res.json({
+          code: res.statusCode,
+          success: true,
+          message: 'Assignments found',
+          assignments: assignment,
+        });
+      }
       return res.json({
         code: res.statusCode,
         success: true,
         message: 'Assignments found',
-        assignments: _.omit(assignments, grades),
+        assignments: _.omit(assignment, grades),
       });
     }
     res.json({
       code: res.statusCode,
       success: true,
       message: 'Assignments found',
-      assignments,
+      assignments: assignment,
     });
   },
 
@@ -653,6 +677,46 @@ module.exports = {
         message: err.message,
       });
     }
+  },
+
+  getSingleStudentGrade: async (req, res, next) => {
+    const id = res.params.id;
+    const assignment = await Assignment.findById(id);
+    if (!assignment) {
+      res.json({
+        code: res.statusCode,
+        success: false,
+        message: 'Assignment not found',
+      });
+      return;
+    }
+    if (req.isTeacher) {
+      return res.json({
+        code: res.statusCode,
+        success: true,
+        message: 'Grade found',
+        grade: assignment.grades,
+      });
+    }
+    if (req.isMapped) {
+      return res.json({
+        code: res.statusCode,
+        success: true,
+        message: 'Grade found',
+        grade: assignment.grades.find((grade) => {
+          if (
+            grade.id.toString() === req.user.student.toString() &&
+            !grade.draft
+          )
+            return true;
+        }),
+      });
+    }
+    return res.json({
+      code: res.statusCode,
+      success: false,
+      message: 'Unauthorized',
+    });
   },
 
   setSingleStudentGrade: async (req, res, next) => {

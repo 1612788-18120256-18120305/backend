@@ -44,7 +44,7 @@ module.exports = {
   requireStudentOrTeacher: (req, res, next) => {
     const course = req.course;
     if (
-      !course.studentIds.toString().includes(req.user.student) &&
+      !course.students.toString().includes(req.user._id) &&
       !course.teachers.toString().includes(req.user._id)
     ) {
       return res.json({
@@ -55,6 +55,9 @@ module.exports = {
     }
     if (course.teachers.toString().includes(req.user._id)) {
       req.isTeacher = true;
+    }
+    if (course.studentIds.toString().includes(req.user.student)) {
+      req.isMapped = true;
     }
     next();
   },

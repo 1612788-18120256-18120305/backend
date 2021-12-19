@@ -68,15 +68,25 @@ router
     courseController.deleteAssignment
   );
 
-router.post(
-  '/:slug/assignment/:id/grade',
-  [
-    authenticate.verifyUser,
-    courseMiddleware.getCourseBySlug,
-    courseMiddleware.requireTeacher,
-  ],
-  courseController.setSingleStudentGrade
-);
+router
+  .get(
+    '/:slug/assignment/:id/grade',
+    [
+      authenticate.verifyUser,
+      courseMiddleware.getCourseBySlug,
+      courseMiddleware.requireTeacher,
+    ],
+    courseController.getSingleStudentGrade
+  )
+  .post(
+    '/:slug/assignment/:id/grade',
+    [
+      authenticate.verifyUser,
+      courseMiddleware.getCourseBySlug,
+      courseMiddleware.requireTeacher,
+    ],
+    courseController.setSingleStudentGrade
+  );
 
 router.post(
   '/:slug/assignment/:id/upload',
