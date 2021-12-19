@@ -606,6 +606,14 @@ module.exports = {
       return;
     }
     const assignments = await Assignment.find({ course: course._id });
+    if (!req.isTeacher) {
+      return res.json({
+        code: res.statusCode,
+        success: true,
+        message: 'Assignments found',
+        assignments: _.omit(assignments, grades),
+      });
+    }
     res.json({
       code: res.statusCode,
       success: true,
@@ -624,11 +632,14 @@ module.exports = {
         course.studentIds = studentIds;
         await course.save();
       } else {
-        await Course.updateOne({_id: course._id}, {
-          $addToSet : {
-            studentIds: studentIds
+        await Course.updateOne(
+          { _id: course._id },
+          {
+            $addToSet: {
+              studentIds: studentIds,
+            },
           }
-        });
+        );
       }
       res.json({
         code: 200,

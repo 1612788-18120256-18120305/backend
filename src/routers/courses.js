@@ -35,7 +35,6 @@ router.post(
   courseController.createInvitation
 );
 
-
 router
   .get(
     '/:slug/assignment',
@@ -49,7 +48,15 @@ router
   );
 
 router
-  .get('/:slug/assignment/:id', courseController.getAssignments)
+  .get(
+    '/:slug/assignment/:id',
+    [
+      authenticate.verifyUser,
+      courseMiddleware.getCourseBySlug,
+      courseMiddleware.requireStudentOrTeacher,
+    ],
+    courseController.getAssignments
+  )
   .patch(
     '/:slug/assignment/:id',
     authenticate.verifyUser,
