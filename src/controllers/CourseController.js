@@ -812,7 +812,7 @@ module.exports = {
     const id = req.params.id;
     const course = req.course;
     const studentIds = course.studentIds;
-    const assignment = await Assignment.findById(id);
+    let assignment = await Assignment.findById(id);
     if (!assignment || !studentIds) {
       return res.json({
         code: res.statusCode,
@@ -820,7 +820,7 @@ module.exports = {
         message: 'Assignment not found',
       });
     }
-    const grades = assignment.grades;
+    let grades = assignment.grades;
     const filteredStudentIds = studentIds.filter((studentId) => {
       const filterGrade = grades.find((grade) => {
         if (studentId.toString() === grade.id.toString()) {
