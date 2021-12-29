@@ -9,4 +9,5 @@ router.put("/:id", authenticate.verifyUser, userController.update);
 router.get("/:id", authenticate.verifyUser, userController.show);
 router.get("/", authenticate.verifyUser, userController.index);
 
+
 module.exports = router;

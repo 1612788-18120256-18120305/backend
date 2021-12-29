@@ -7,9 +7,10 @@ const User = new Schema(
   {
     email: {
       type: String,
-      required: true,
+      require: true,
       unique: true,
     },
+    // for admin login
     password: {
       type: String,
     },
