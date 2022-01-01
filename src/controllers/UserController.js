@@ -66,6 +66,52 @@ class UserController {
       })
       .catch(next);
   }
+
+  async postCreateAdmin(req, res, next) {
+    const { email, password, name, phoneNumber } = req.body;
+    if(password.length > 16 || password.length < 8) {
+      res.status(400).json({
+        code: res.statusCode,
+        success: false,
+        message: 'Password must be 8-16 characters'
+      })
+    }
+    const admin = await User.findOne({ email: email });
+    if(admin) {
+      res.status(400).json({
+        code: res.statusCode,
+        success: false,
+        message: 'Email already existed!'
+      })
+    }
+    const newAdmin = new User({
+      email,
+      password: bcrypt.hashSync(req.body.password, 10),
+      name,
+      phoneNumber,
+      type: 0
+    })
+
+    await newAdmin.save();
+    res.status(201).json({
+      code: res.statusCode,
+      success: true,
+      admin: newAdmin,
+      message: 'Create admin successfully!'
+    })
+  }
+
+  // [GET] /users/admins
+  getAdmins(req, res, next) {
+    User.find({ type: 0 })
+      .then((admins) => {
+        res.status(200).json({
+          code: res.statusCode,
+          success: true,
+          admins,
+        });
+      }).catch(next);
+  }
 }
 
 module.exports = new UserController();

@@ -20,6 +20,9 @@ const User = new Schema(
     student: {
       type: String,
     },
+    phoneNumber : {
+      type: Number
+    },
     googleId: {
       type: String,
     },

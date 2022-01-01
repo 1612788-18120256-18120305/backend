@@ -72,22 +72,22 @@ module.exports = {
   // [POST] /auth/admin/login
   postAdminLogin: async (req, res) => {
     const user = await User.findOne({ email: req.body.email });
-    if(!user) {
-      return res.json({
+    if(!user || (user && !user.password)) {
+      return res.status(401).json({
         code: res.statusCode,
         success: false,
         message: 'The admin does not exist!',
       });
     }
-    if(!bcrypt.compareSync(req.body.password, user.password)) {
-      return res.json({
+    if(await bcrypt.compare(req.body.password, user.password) === false) {
+      return res.status(401).json({
         code: res.statusCode,
         success: false,
         message: 'Incorrect password!',
       })
     }
     if(user.type !== 0) {
-      return res.json({
+      return res.status(401).json({
         code: res.statusCode,
         success: false,
         message: 'You are not an admin!',
@@ -102,35 +102,4 @@ module.exports = {
     });
   },
 
-  postCreateAdmin: async (req, res) => {
-    const { email, password, name } = req.body;
-    if(password.length > 16 || password.length < 8) {
-      res.status(400).json({
-        code: res.statusCode,
-        success: false,
-        message: 'Password must be 8-16 characters'
-      })
-    }
-    const admin = await User.findOne({ email: email });
-    if(admin) {
-      res.status(400).json({
-        code: res.statusCode,
-        success: false,
-        message: 'Email already existed!'
-      })
-    }
-    const newAdmin = new User({
-      email,
-      password: bcrypt.hashSync(req.body.password, 10),
-      name,
-      type: 0
-    })
-
-    await newAdmin.save();
-    res.status(201).json({
-      code: res.statusCode,
-      success: true,
-      message: 'Create admin successfully!'
-    })
-  }
 };
