@@ -29,6 +29,10 @@ const User = new Schema(
     facebookId: {
       type: String,
     },
+    status: {
+      type: Number,
+      default: 1, // 0: inactive, 1: active
+    },
     type: {
       type: Number,
       default: 1, // 0: Admin | 1: User

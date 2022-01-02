@@ -12,7 +12,8 @@ router.post('/admins',
   userController.postCreateAdmin
 );
 router.get("/admins", authenticate.verifyUser, adminMiddleWare.requiredAdmin, userController.getAdmins);
-
+router.post('/ban', authenticate.verifyUser, adminMiddleWare.requiredAdmin, userController.postBan);
+router.post('/unlock', authenticate.verifyUser, adminMiddleWare.requiredAdmin, userController.postUnlock);
 router.put("/:id", authenticate.verifyUser, userController.update);
 router.get("/:id", authenticate.verifyUser, userController.show);
 router.get("/", authenticate.verifyUser, userController.index);

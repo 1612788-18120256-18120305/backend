@@ -5,7 +5,7 @@ const User = require('../models/User');
 class UserController {
   // [GET] /users
   index(req, res, next) {
-    User.find({})
+    User.find({ type: {$ne: 0} })
       .then((users) => {
         res.json({
           code: res.statusCode,
@@ -43,7 +43,7 @@ class UserController {
         return;
       }
     }
-    User.updateOne({ _id: req.params.id }, req.body)
+    User.findByIdAndUpdate({ _id: req.params.id }, req.body, { new: true })
       .then((user) => {
         res.json({
           code: res.statusCode,
@@ -109,6 +109,30 @@ class UserController {
           code: res.statusCode,
           success: true,
           admins,
+        });
+      }).catch(next);
+  }
+
+  // [POST] /users/ban
+  postBan(req, res, next) {
+    User.findByIdAndUpdate(req.body.id, { status: 0 }, { new: true })
+      .then((user) => {
+        res.status(200).json({
+          code: res.statusCode,
+          success: true,
+          user,
+        });
+      }).catch(next);
+  }
+
+  // [POST] /users/unlock
+  postUnlock(req, res, next) {
+    User.findByIdAndUpdate(req.body.id, { status: 1 }, { new: true })
+      .then((user) => {
+        res.status(200).json({
+          code: res.statusCode,
+          success: true,
+          user,
         });
       }).catch(next);
   }
