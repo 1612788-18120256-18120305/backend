@@ -37,6 +37,18 @@ module.exports = {
     res.json({ code: res.statusCode, success: true, courses });
   },
 
+  // [GET] /courses/all
+
+  getAllCourses: async (req, res, next) => {
+    const courses = await Course.find({}).populate('owner');
+    res.json({ code: res.statusCode, success: true, courses });
+  },
+
+  getAnyCourseById: async (req,res, next) => {
+    const course = await Course.findById(req.params.id).populate('owner').populate('teachers');
+    res.json({ code: res.statusCode, success: true, course });
+  },
+
   // [POST] /courses/store
   createCourse: async (req, res, next) => {
     const course = new Course({

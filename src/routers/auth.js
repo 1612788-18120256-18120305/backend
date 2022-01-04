@@ -16,4 +16,7 @@ router.get(
   authController.socialLogin
 );
 
+router.post('/admin/login', authController.postAdminLogin);
+
+
 module.exports = router;

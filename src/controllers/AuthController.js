@@ -68,4 +68,38 @@ module.exports = {
       });
     }
   },
+
+  // [POST] /auth/admin/login
+  postAdminLogin: async (req, res) => {
+    const user = await User.findOne({ email: req.body.email });
+    if(!user || (user && !user.password)) {
+      return res.status(401).json({
+        code: res.statusCode,
+        success: false,
+        message: 'The admin does not exist!',
+      });
+    }
+    if(await bcrypt.compare(req.body.password, user.password) === false) {
+      return res.status(401).json({
+        code: res.statusCode,
+        success: false,
+        message: 'Incorrect password!',
+      })
+    }
+    if(user.type !== 0) {
+      return res.status(401).json({
+        code: res.statusCode,
+        success: false,
+        message: 'You are not an admin!',
+      })
+    }
+    const jwt = authenticate.getToken(user);
+    res.status(200).json({
+      code: res.statusCode,
+      success: true,
+      user,
+      jwt,
+    });
+  },
+
 };
