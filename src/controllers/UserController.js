@@ -136,6 +136,42 @@ class UserController {
         });
       }).catch(next);
   }
+
+  // [PATCH] /users/map
+  mapStudentId(req, res, next) {
+    User.findOne({ student: req.body.student })
+      .then((user) => {
+        if (user) {
+          res.status(400).json({
+            code: res.statusCode,
+            success: false,
+            message: 'StudentId already exists',
+          });
+          return;
+        } else {
+          User.findByIdAndUpdate(req.body.id, { student: req.body.student }, { new: true })
+          .then((user) => {
+            res.status(200).json({
+              code: res.statusCode,
+              success: true,
+              user,
+            });
+          }).catch(next);
+        }
+      })
+  }
+
+  // [PATCH]
+  unmapStudentId(req, res, next) {
+    User.findByIdAndUpdate(req.body.id, { student: null }, { new: true })
+      .then((user) => {
+        res.status(200).json({
+          code: res.statusCode,
+          success: true,
+          user,
+        });
+      }).catch(next);
+  }
 }
 
 module.exports = new UserController();

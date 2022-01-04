@@ -13,6 +13,12 @@ router.post('/admins',
 );
 router.get("/admins", authenticate.verifyUser, adminMiddleWare.requiredAdmin, userController.getAdmins);
 router.post('/ban', authenticate.verifyUser, adminMiddleWare.requiredAdmin, userController.postBan);
+
+//admin map studentId
+router.patch('/map', authenticate.verifyUser, adminMiddleWare.requiredAdmin, userController.mapStudentId);
+// admin unmap studentId
+router.patch('/unmap', authenticate.verifyUser, adminMiddleWare.requiredAdmin, userController.unmapStudentId);
+
 router.post('/unlock', authenticate.verifyUser, adminMiddleWare.requiredAdmin, userController.postUnlock);
 router.put("/:id", authenticate.verifyUser, userController.update);
 router.get("/:id", authenticate.verifyUser, userController.show);
