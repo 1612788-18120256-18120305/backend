@@ -56,7 +56,7 @@ exports.googlePassport = passport.use(
         } else {
           const newUser = new User({
             googleId: profile.id,
-            fullName: profile.displayName,
+            name: profile.displayName,
             email: profile.emails[0].value,
           });
           newUser.save((err, user) => {
@@ -87,7 +87,7 @@ exports.facebookPassport = passport.use(
         } else {
           const newUser = new User({
             facebookId: profile.id,
-            fullName: profile.displayName,
+            name: profile.displayName,
             email: profile.emails[0].value,
           });
           newUser.save((err, user) => {
