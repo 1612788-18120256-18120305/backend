@@ -5,6 +5,7 @@ const Invitation = require('../models/Invitation.js');
 const { nanoid } = require('nanoid');
 const User = require('../models/User');
 const Assignment = require('../models/Assignment');
+const GradeReview = require('../models/GradeReview');
 const _ = require('lodash');
 
 const createDefaultInvitation = (courseId) => {
@@ -44,8 +45,10 @@ module.exports = {
     res.json({ code: res.statusCode, success: true, courses });
   },
 
-  getAnyCourseById: async (req,res, next) => {
-    const course = await Course.findById(req.params.id).populate('owner').populate('teachers');
+  getAnyCourseById: async (req, res, next) => {
+    const course = await Course.findById(req.params.id)
+      .populate('owner')
+      .populate('teachers');
     res.json({ code: res.statusCode, success: true, course });
   },
 
@@ -926,6 +929,231 @@ module.exports = {
         message: 'Finalize grade set successfully',
       });
     } catch (err) {
+      res.json({
+        code: 500,
+        success: false,
+        message: err.message,
+      });
+    }
+  },
+
+  submitGradeReview: async (req, res, next) => {
+    const { expectedGrade, message } = req.body;
+    const studentId = req.user.student;
+    const assignmentId = req.params.id;
+    const assignment = Assignment.findById(assignmentId);
+    if (!assignment) {
+      return res.json({
+        code: res.statusCode,
+        success: false,
+        message: 'Assignment not found',
+      });
+    }
+    const grade = assignment.grades.find((item) => {
+      return item.id.toString() === studentId.toString();
+    });
+    const newReview = new GradeReview({
+      studentId,
+      assignmentId,
+      expectedGrade,
+      actualGrade: grade?.grade ?? 0,
+      message,
+    });
+    try {
+      await newReview.save();
+      res.json({
+        code: res.statusCode,
+        success: true,
+        message: 'Grade review submitted successfully',
+      });
+    } catch (err) {
+      console.error(err);
+      res.json({
+        code: res.statusCode,
+        success: false,
+        message: err.message,
+      });
+    }
+  },
+
+  getGradeReviews: async (req, res, next) => {
+    const assignmentId = req.params.id;
+    const { isTeacher } = req.isTeacher;
+    const assignment = await Assignment.findById(assignmentId);
+    if (!assignment) {
+      return res.json({
+        code: res.statusCode,
+        success: false,
+        message: 'Assignment not found',
+      });
+    }
+    let gradeReviews = await GradeReview.find({ assignmentId });
+    if (!isTeacher) {
+      gradeReviews = gradeReviews.filter((item) => {
+        return item.studentId.toString() === req.user.student.toString();
+      });
+    }
+    res.json({
+      code: res.statusCode,
+      success: true,
+      gradeReviews,
+    });
+  },
+
+  getSingleReview: async (req, res, next) => {
+    const reviewId = req.params.reviewId;
+    const assignmentId = req.params.id;
+    const review = await GradeReview.findById(reviewId);
+    if (
+      !review ||
+      review.assignmentId.toString() !== assignmentId.toString() ||
+      (!isTeacher &&
+        review.studentId.toString() !== req.user.student.toString())
+    ) {
+      return res.json({
+        code: 404,
+        success: false,
+        message: 'Review not found',
+      });
+    }
+    res.json({
+      code: res.statusCode,
+      success: true,
+      review,
+    });
+  },
+
+  deleteSingleReview: async (req, res, next) => {
+    const reviewId = req.params.reviewId;
+    const assignmentId = req.params.id;
+    const review = await GradeReview.findById(reviewId);
+    if (
+      !review ||
+      review.assignmentId.toString() !== assignmentId.toString() ||
+      (!isTeacher &&
+        review.studentId.toString() !== req.user.student.toString())
+    ) {
+      return res.json({
+        code: 404,
+        success: false,
+        message: 'Review not found',
+      });
+    }
+    try {
+      await review.remove();
+      res.json({
+        code: res.statusCode,
+        success: true,
+        message: 'Review deleted successfully',
+      });
+    } catch (err) {
+      res.json({
+        code: 500,
+        success: false,
+        message: err.message,
+      });
+    }
+  },
+
+  reviewAddComment: async (req, res, next) => {
+    const { content } = req.body;
+    const reviewId = req.params.reviewId;
+    const assignmentId = req.params.id;
+    const review = await GradeReview.findById(reviewId);
+    if (
+      !review ||
+      review.assignmentId.toString() !== assignmentId.toString() ||
+      (!isTeacher &&
+        review.studentId.toString() !== req.user.student.toString())
+    ) {
+      return res.json({
+        code: 404,
+        success: false,
+        message: 'Review not found',
+      });
+    }
+    const newComment = {
+      userId: req.user._id,
+      content,
+    };
+    review.comments.push(newComment);
+    try {
+      await review.save();
+      res.json({
+        code: res.statusCode,
+        success: true,
+        message: 'Comment added successfully',
+      });
+    } catch (err) {
+      console.error(err);
+      res.json({
+        code: 500,
+        success: false,
+        message: err.message,
+      });
+    }
+  },
+
+  markFinalReview: async (req, res, next) => {
+    const { grade, approve } = req.body;
+    const reviewId = req.params.reviewId;
+    const assignmentId = req.params.id;
+    const review = await GradeReview.findById(reviewId);
+    if (!review || review.assignmentId.toString() !== assignmentId.toString()) {
+      return res.json({
+        code: 404,
+        success: false,
+        message: 'Review not found',
+      });
+    }
+    const assignment = await Assignment.findById(assignmentId);
+    if (!assignment) {
+      return res.json({
+        code: 404,
+        success: false,
+        message: 'Assignment not found',
+      });
+    }
+    if (!approve) {
+      review.status = 2;
+      try {
+        await review.save();
+        return res.json({
+          code: res.statusCode,
+          success: true,
+          message: 'Review marked as not approved',
+        });
+      } catch (err) {
+        console.error(err);
+        res.json({
+          code: 500,
+          success: false,
+          message: err.message,
+        });
+      }
+    }
+    const trueGrade = assignment.grades.find(
+      (item) => item.id.toString() === review.studentId.toString()
+    );
+    if (trueGrade) {
+      trueGrade.grade = grade;
+    } else {
+      assignment.grades.push({
+        id: review.studentId,
+        grade,
+      });
+    }
+    try {
+      await assignment.save();
+      review.status = 1;
+      await review.save();
+      res.json({
+        code: res.statusCode,
+        success: true,
+        message: 'Review marked as approved',
+      });
+    } catch (err) {
+      console.error(err);
       res.json({
         code: 500,
         success: false,

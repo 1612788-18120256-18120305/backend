@@ -32,6 +32,7 @@ exports.jwtPassport = passport.use(
         return done(err, false);
       }
       if (user) {
+        if (!user.status) return done(null, false);
         return done(null, user);
       } else {
         return done(null, false);

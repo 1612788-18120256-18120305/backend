@@ -6,17 +6,25 @@ const courseController = require('../controllers/CourseController');
 
 const router = express.Router();
 
-router.get('/all', authenticate.verifyUser, adminMiddleWare.requiredAdmin, courseController.getAllCourses);
-router.get('/all/:id', authenticate.verifyUser, adminMiddleWare.requiredAdmin, courseController.getAnyCourseById);
+router.get(
+  '/all',
+  authenticate.verifyUser,
+  adminMiddleWare.requiredAdmin,
+  courseController.getAllCourses
+);
+router.get(
+  '/all/:id',
+  authenticate.verifyUser,
+  adminMiddleWare.requiredAdmin,
+  courseController.getAnyCourseById
+);
 
 router
   .post('/store', authenticate.verifyUser, courseController.createCourse)
   .get('/:slug', authenticate.verifyUser, courseController.getCourse)
   .put('/:id', authenticate.verifyUser, courseController.updateCourse)
   .delete('/:id', authenticate.verifyUser, courseController.deleteCourse)
-  .get('/', authenticate.verifyUser, courseController.getCourses)
-
-
+  .get('/', authenticate.verifyUser, courseController.getCourses);
 
 router.get('/join/:id', authenticate.verifyUser, courseController.joinCourse);
 
@@ -73,6 +81,66 @@ router
     authenticate.verifyUser,
     courseController.deleteAssignment
   );
+
+router
+  .post(
+    '/:slug/assignment/:id/review',
+    [
+      authenticate.verifyUser,
+      courseMiddleware.getCourseBySlug,
+      courseMiddleware.requireStudent,
+    ],
+    courseController.submitGradeReview
+  )
+  .get(
+    '/:slug/assignment/:id/review',
+    [
+      authenticate.verifyUser,
+      courseMiddleware.getCourseBySlug,
+      courseMiddleware.requireStudentOrTeacher,
+    ],
+    courseController.getGradeReviews
+  );
+
+router
+  .get(
+    '/:slug/assignment/:id/review/:reviewId',
+    [
+      authenticate.verifyUser,
+      courseMiddleware.getCourseBySlug,
+      courseMiddleware.requireStudentOrTeacher,
+    ],
+    courseController.getSingleReview
+  )
+  .delete(
+    '/:slug/assignment/:id/review/:reviewId',
+    [
+      authenticate.verifyUser,
+      courseMiddleware.getCourseBySlug,
+      courseMiddleware.requireStudentOrTeacher,
+    ],
+    courseController.deleteSingleReview
+  );
+
+router.post(
+  '/:slug/assignment/:id/review/:reviewId/comment',
+  [
+    authenticate.verifyUser,
+    courseMiddleware.getCourseBySlug,
+    courseMiddleware.requireStudentOrTeacher,
+  ],
+  courseController.reviewAddComment
+);
+
+router.post(
+  '/:slug/assignment/:id/review/:reviewId/finalize',
+  [
+    authenticate.verifyUser,
+    courseMiddleware.getCourseBySlug,
+    courseMiddleware.requireTeacher,
+  ],
+  courseController.markFinalReview
+);
 
 router
   .get(

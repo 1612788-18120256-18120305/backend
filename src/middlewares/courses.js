@@ -61,4 +61,16 @@ module.exports = {
     }
     next();
   },
+
+  requireStudent: (req, res, next) => {
+    const course = req.course;
+    if (!course.students.toString().includes(req.user._id)) {
+      return res.json({
+        code: 403,
+        success: false,
+        message: 'Forbidden',
+      });
+    }
+    next();
+  },
 };
