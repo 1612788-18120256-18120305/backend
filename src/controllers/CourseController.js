@@ -5,6 +5,7 @@ const Invitation = require('../models/Invitation.js');
 const { nanoid } = require('nanoid');
 const User = require('../models/User');
 const Assignment = require('../models/Assignment');
+const GradeReview = require('../models/GradeReview');
 const _ = require('lodash');
 
 const createDefaultInvitation = (courseId) => {
@@ -44,8 +45,10 @@ module.exports = {
     res.json({ code: res.statusCode, success: true, courses });
   },
 
-  getAnyCourseById: async (req,res, next) => {
-    const course = await Course.findById(req.params.id).populate('owner').populate('teachers');
+  getAnyCourseById: async (req, res, next) => {
+    const course = await Course.findById(req.params.id)
+      .populate('owner')
+      .populate('teachers');
     res.json({ code: res.statusCode, success: true, course });
   },
 
@@ -928,6 +931,45 @@ module.exports = {
     } catch (err) {
       res.json({
         code: 500,
+        success: false,
+        message: err.message,
+      });
+    }
+  },
+
+  submitGradeReview(req, res, next) {
+    const { expectedGrade, message } = req.body;
+    const studentId = req.user.student;
+    const assignmentId = req.params.id;
+    const assignment = Assignment.findById(assignmentId);
+    if (!assignment) {
+      return res.json({
+        code: res.statusCode,
+        success: false,
+        message: 'Assignment not found',
+      });
+    }
+    const grade = assignment.grades.find((item) => {
+      return item.id.toString() === studentId.toString();
+    });
+    const newReview = new GradeReview({
+      studentId,
+      assignmentId,
+      expectedGrade,
+      actualGrade: grade?.grade ?? 0,
+      message,
+    });
+    try {
+      await newReview.save();
+      res.json({
+        code: res.statusCode,
+        success: true,
+        message: 'Grade review submitted successfully',
+      });
+    } catch (err) {
+      console.error(err);
+      res.json({
+        code: res.statusCode,
         success: false,
         message: err.message,
       });
