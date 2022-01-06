@@ -82,14 +82,64 @@ router
     courseController.deleteAssignment
   );
 
+router
+  .post(
+    '/:slug/assignment/:id/review',
+    [
+      authenticate.verifyUser,
+      courseMiddleware.getCourseBySlug,
+      courseMiddleware.requireStudent,
+    ],
+    courseController.submitGradeReview
+  )
+  .get(
+    '/:slug/assignment/:id/review',
+    [
+      authenticate.verifyUser,
+      courseMiddleware.getCourseBySlug,
+      courseMiddleware.requireStudentOrTeacher,
+    ],
+    courseController.getGradeReviews
+  );
+
+router
+  .get(
+    '/:slug/assignment/:id/review/:reviewId',
+    [
+      authenticate.verifyUser,
+      courseMiddleware.getCourseBySlug,
+      courseMiddleware.requireStudentOrTeacher,
+    ],
+    courseController.getSingleReview
+  )
+  .delete(
+    '/:slug/assignment/:id/review/:reviewId',
+    [
+      authenticate.verifyUser,
+      courseMiddleware.getCourseBySlug,
+      courseMiddleware.requireStudentOrTeacher,
+    ],
+    courseController.deleteSingleReview
+  );
+
 router.post(
-  '/:slug/assignment/:id/review',
+  '/:slug/assignment/:id/review/:reviewId/comment',
   [
     authenticate.verifyUser,
     courseMiddleware.getCourseBySlug,
-    courseMiddleware.requireStudent,
+    courseMiddleware.requireStudentOrTeacher,
   ],
-  courseController.submitGradeReview
+  courseController.reviewAddComment
+);
+
+router.post(
+  '/:slug/assignment/:id/review/:reviewId/finalize',
+  [
+    authenticate.verifyUser,
+    courseMiddleware.getCourseBySlug,
+    courseMiddleware.requireTeacher,
+  ],
+  courseController.markFinalReview
 );
 
 router
