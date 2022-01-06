@@ -5,7 +5,7 @@ const Schema = mongoose.Schema;
 const GradeReview = new Schema(
   {
     studentId: String,
-    assignmentId: Schema.Types.ObjectId,
+    assignmentId: { type: Schema.Types.ObjectId, ref: 'Assignment' },
     expectedGrade: Number,
     actualGrade: Number,
     message: String,
@@ -13,6 +13,13 @@ const GradeReview = new Schema(
       type: Number,
       default: 0,
     }, // 0: pending, 1: approved, 2: rejected
+    comments: [
+      {
+        userId: { type: Schema.Types.ObjectId, ref: 'User' },
+        content: String,
+        createdAt: { type: Date, default: Date.now },
+      },
+    ],
   },
   { timestamps: true }
 );
