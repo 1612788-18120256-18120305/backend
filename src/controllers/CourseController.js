@@ -6,6 +6,7 @@ const { nanoid } = require('nanoid');
 const User = require('../models/User');
 const Assignment = require('../models/Assignment');
 const GradeReview = require('../models/GradeReview');
+const notificationService = require('../services/notification');
 const _ = require('lodash');
 
 const createDefaultInvitation = (courseId) => {
@@ -862,6 +863,14 @@ module.exports = {
     assignment.grades = grades;
     try {
       await assignment.save();
+      newGrades.forEach((item) => {
+        notificationService.gradeFinalizeNotification(
+          course._id,
+          assignment,
+          item.id,
+          req.user._id
+        );
+      });
       res.json({
         code: res.statusCode,
         success: true,
@@ -923,6 +932,12 @@ module.exports = {
     }
     try {
       await assignment.save();
+      notificationService.gradeFinalizeNotification(
+        course._id,
+        assignment,
+        studentId,
+        req.user._id
+      );
       res.json({
         code: res.statusCode,
         success: true,
@@ -939,6 +954,7 @@ module.exports = {
 
   submitGradeReview: async (req, res, next) => {
     const { expectedGrade, message } = req.body;
+    const { slug } = req.params;
     const studentId = req.user.student;
     const assignmentId = req.params.id;
     const assignment = Assignment.findById(assignmentId);
@@ -961,6 +977,12 @@ module.exports = {
     });
     try {
       await newReview.save();
+      notificationService.newGradeReviewNotification(
+        slug,
+        req.user._id,
+        req.user.name,
+        assignment
+      );
       res.json({
         code: res.statusCode,
         success: true,
@@ -1059,7 +1081,9 @@ module.exports = {
     const { content } = req.body;
     const reviewId = req.params.reviewId;
     const assignmentId = req.params.id;
+    const course = req.course;
     const review = await GradeReview.findById(reviewId);
+    const student = await User.findOne({ student: review.studentId });
     if (
       !review ||
       review.assignmentId.toString() !== assignmentId.toString() ||
@@ -1079,6 +1103,13 @@ module.exports = {
     review.comments.push(newComment);
     try {
       await review.save();
+      if (student)
+        notificationService.newCommentNotification(
+          course._id,
+          student._id,
+          req.user._id,
+          req.user.name
+        );
       res.json({
         code: res.statusCode,
         success: true,
@@ -1097,8 +1128,10 @@ module.exports = {
   markFinalReview: async (req, res, next) => {
     const { grade, approve } = req.body;
     const reviewId = req.params.reviewId;
+    const course = req.course;
     const assignmentId = req.params.id;
     const review = await GradeReview.findById(reviewId);
+    const student = await User.findOne({ student: review.studentId });
     if (!review || review.assignmentId.toString() !== assignmentId.toString()) {
       return res.json({
         code: 404,
@@ -1118,6 +1151,15 @@ module.exports = {
       review.status = 2;
       try {
         await review.save();
+        if (student)
+          notificationService.markReviewNotification(
+            course._id,
+            student._id,
+            req.user._id,
+            req.user.name,
+            assignment,
+            false
+          );
         return res.json({
           code: res.statusCode,
           success: true,
@@ -1136,7 +1178,7 @@ module.exports = {
       (item) => item.id.toString() === review.studentId.toString()
     );
     if (trueGrade) {
-      trueGrade.grade = grade;
+      trueGrade.grade = grade ?? review.expectedGrade;
     } else {
       assignment.grades.push({
         id: review.studentId,
@@ -1147,6 +1189,15 @@ module.exports = {
       await assignment.save();
       review.status = 1;
       await review.save();
+      if (student)
+        notificationService.markReviewNotification(
+          course._id,
+          student._id,
+          req.user._id,
+          req.user.name,
+          assignment,
+          true
+        );
       res.json({
         code: res.statusCode,
         success: true,
