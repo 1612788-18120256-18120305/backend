@@ -60,12 +60,11 @@ module.exports = {
   },
 
   newGradeReviewNotification: async (
-    courseSlug,
+    course,
     senderId,
     senderName,
     assignment
   ) => {
-    const course = await Course.findOne({ slug: courseSlug });
     if (!course) return;
     const notifyAll = course.teachers.map((teacher) => {
       const newNotification = new Notification({
@@ -73,7 +72,7 @@ module.exports = {
         sender: senderId,
         type: 'NEW_GRADE_REVIEW',
         message: `${senderName} đã yêu cầu đánh giá ${assignment.name}`,
-        course: courseId,
+        course: course._id,
       });
       return newNotification.save();
     });

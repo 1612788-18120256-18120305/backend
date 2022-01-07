@@ -954,7 +954,7 @@ module.exports = {
 
   submitGradeReview: async (req, res, next) => {
     const { expectedGrade, message } = req.body;
-    const { slug } = req.params;
+    const course = req.course;
     const studentId = req.user.student;
     const assignmentId = req.params.id;
     const assignment = Assignment.findById(assignmentId);
@@ -978,7 +978,7 @@ module.exports = {
     try {
       await newReview.save();
       notificationService.newGradeReviewNotification(
-        slug,
+        course,
         req.user._id,
         req.user.name,
         assignment
