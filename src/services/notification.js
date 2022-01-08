@@ -1,6 +1,7 @@
 const Notification = require('../models/Notification');
 const User = require('../models/User');
 const Course = require('../models/Course');
+const socket = require('../socket');
 
 module.exports = {
   gradeFinalizeNotification: async (
@@ -20,6 +21,7 @@ module.exports = {
       additional: assignment._id,
     });
     await newNotification.save();
+    socket.sendNotice(user._id, newNotification);
   },
 
   newCommentNotification: async (
@@ -37,6 +39,7 @@ module.exports = {
       course: courseId,
     });
     await newNotification.save();
+    socket.sendNotice(receiverId, newNotification);
   },
 
   markReviewNotification: async (
@@ -57,6 +60,7 @@ module.exports = {
       course: courseId,
     });
     await newNotification.save();
+    socket.sendNotice(receiverId, newNotification);
   },
 
   newGradeReviewNotification: async (
@@ -74,6 +78,7 @@ module.exports = {
         message: `${senderName} đã yêu cầu đánh giá ${assignment.name}`,
         course: course._id,
       });
+      socket.sendNotice(teacher, newNotification);
       return newNotification.save();
     });
     await Promise.all(notifyAll);

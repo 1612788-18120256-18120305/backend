@@ -11,6 +11,7 @@ const app = express();
 const db = require('./config/db');
 const route = require('./routers');
 const port = process.env.PORT || 8000;
+const socket = require('./socket');
 
 app.use(morgan('combined'));
 app.use(methodOverride('_method'));
@@ -24,6 +25,7 @@ require('./authenticate');
 db.connect();
 route(app);
 
-app.listen(port, () => {
-  console.log(`App listening at http://localhost:${port}`);
-});
+// app.listen(port, () => {
+//   console.log(`App listening at http://localhost:${port}`);
+// });
+socket.initServer(app);
