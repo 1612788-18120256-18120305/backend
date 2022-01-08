@@ -3,6 +3,7 @@ const { Server } = require('socket.io');
 const jwt = require('jsonwebtoken');
 const { JWT_SECRET } = require('./config/mainConfig');
 const port = process.env.PORT || 8000;
+const _ = require('lodash');
 
 let io = null;
 
