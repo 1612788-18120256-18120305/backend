@@ -1,6 +1,6 @@
-const bcrypt = require('bcrypt');
-const authenticate = require('../authenticate');
-const User = require('../models/User');
+const bcrypt = require("bcrypt");
+const authenticate = require("../authenticate");
+const User = require("../models/User");
 
 module.exports = {
   // [POST] /auth/login
@@ -9,14 +9,14 @@ module.exports = {
     const user = await User.findOne({ email: req.body.email });
     if (
       user &&
-      (await bcrypt.compare(req.body.password, user ? user.password : ''))
+      (await bcrypt.compare(req.body.password, user ? user.password : ""))
     ) {
       if (!user.status)
         return res.json({
           status: 401,
           success: false,
           message:
-            'Your account has been disabled. Please contact the administrator.',
+            "Your account has been disabled. Please contact the administrator.",
         });
       const jwt = authenticate.getToken(user);
       res.json({
@@ -31,7 +31,7 @@ module.exports = {
       res.json({
         code: res.statusCode,
         success: false,
-        message: 'Incorrect email or password',
+        message: "Incorrect email or password",
       });
     }
   },
@@ -43,16 +43,17 @@ module.exports = {
       res.json({
         code: res.statusCode,
         success: false,
-        message: 'The user already exists!',
+        message: "The user already exists!",
       });
     } else {
       const newUser = new User(req.body);
+      newUser.type = 1;
       newUser.password = bcrypt.hashSync(req.body.password, 10);
       await newUser.save();
       res.json({
         code: res.statusCode,
         success: true,
-        message: 'Successful account registration',
+        message: "Successful account registration",
       });
     }
   },
@@ -71,7 +72,7 @@ module.exports = {
       res.json({
         code: res.statusCode,
         success: false,
-        message: 'Unauthorized',
+        message: "Unauthorized",
       });
     }
   },
@@ -83,21 +84,21 @@ module.exports = {
       return res.status(401).json({
         code: res.statusCode,
         success: false,
-        message: 'The admin does not exist!',
+        message: "The admin does not exist!",
       });
     }
     if ((await bcrypt.compare(req.body.password, user.password)) === false) {
       return res.status(401).json({
         code: res.statusCode,
         success: false,
-        message: 'Incorrect password!',
+        message: "Incorrect password!",
       });
     }
     if (user.type !== 0) {
       return res.status(401).json({
         code: res.statusCode,
         success: false,
-        message: 'You are not an admin!',
+        message: "You are not an admin!",
       });
     }
     const jwt = authenticate.getToken(user);
