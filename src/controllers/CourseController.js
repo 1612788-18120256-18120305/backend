@@ -454,6 +454,15 @@ module.exports = {
         course.teachers.toString().includes(req.user.id) ||
         course.owner.id === req.user.id
       ) {
+        if (course.students.toString().includes(req.user.id)) {
+          course.assignments.forEach((assignment) => {
+            assignment.grades = assignment.grades.filter((grade) => {
+              if (grade.id === req.user.student && !grade.draft) {
+                return true;
+              }
+            });
+          });
+        }
         res.json({
           code: res.statusCode,
           success: true,
@@ -957,7 +966,7 @@ module.exports = {
     const course = req.course;
     const studentId = req.user.student;
     const assignmentId = req.params.id;
-    const assignment = Assignment.findById(assignmentId);
+    const assignment = await Assignment.findById(assignmentId);
     if (!assignment) {
       return res.json({
         code: res.statusCode,
