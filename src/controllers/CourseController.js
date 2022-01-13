@@ -1009,7 +1009,7 @@ module.exports = {
 
   getGradeReviews: async (req, res, next) => {
     const assignmentId = req.params.id;
-    const { isTeacher } = req.isTeacher;
+    const { isTeacher } = req;
     const assignment = await Assignment.findById(assignmentId);
     if (!assignment) {
       return res.json({
@@ -1091,6 +1091,15 @@ module.exports = {
     const reviewId = req.params.reviewId;
     const assignmentId = req.params.id;
     const course = req.course;
+    const isTeacher = req;
+    const assignment = await Assignment.findById(assignmentId);
+    if (!assignment) {
+      return res.json({
+        code: res.statusCode,
+        success: false,
+        message: 'Assignment not found',
+      });
+    }
     const review = await GradeReview.findById(reviewId);
     const student = await User.findOne({ student: review.studentId });
     if (
@@ -1107,6 +1116,7 @@ module.exports = {
     }
     const newComment = {
       userId: req.user._id,
+      name: req.user.name,
       content,
     };
     review.comments.push(newComment);
@@ -1117,12 +1127,14 @@ module.exports = {
           course._id,
           student._id,
           req.user._id,
-          req.user.name
+          req.user.name,
+          assignment
         );
       res.json({
         code: res.statusCode,
         success: true,
         message: 'Comment added successfully',
+        comment: _.last(review.comments),
       });
     } catch (err) {
       console.error(err);

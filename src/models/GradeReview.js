@@ -16,6 +16,7 @@ const GradeReview = new Schema(
     comments: [
       {
         userId: { type: Schema.Types.ObjectId, ref: 'User' },
+        name: String,
         content: String,
         createdAt: { type: Date, default: Date.now },
       },
