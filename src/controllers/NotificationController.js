@@ -1,8 +1,8 @@
 const Notification = require('../models/Notification');
 
 module.exports = {
-  getAllNotification(req, res) {
-    const notifications = Notification.find({ userId: req.user._id })
+  async getAllNotification(req, res) {
+    const notifications = await Notification.find({ userId: req.user._id })
       .populate('sender')
       .populate('course');
     const filterNotification = notifications.map((notification) => {
@@ -58,8 +58,8 @@ module.exports = {
     );
   },
 
-  getUnviewNotification(req, res) {
-    const notifications = Notification.find({
+  async getUnviewNotification(req, res) {
+    const notifications = await Notification.find({
       userId: req.user._id,
       viewed: false,
     })
