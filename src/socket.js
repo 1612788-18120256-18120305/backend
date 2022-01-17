@@ -48,7 +48,12 @@ const sendNotice = (userId, message) => {
 module.exports = {
   initServer(app) {
     const httpServer = createServer(app);
-    io = new Server(httpServer);
+    io = new Server(httpServer, {
+      cors: {
+        origin: '*',
+        optionsSuccessStatus: 200,
+      },
+    });
     registerAuth();
     httpServer.listen(port, () => {
       console.log(`App listening at http://localhost:${port}`);
