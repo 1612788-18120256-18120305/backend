@@ -20,8 +20,8 @@ const User = new Schema(
     student: {
       type: String,
     },
-    phoneNumber : {
-      type: Number
+    phoneNumber: {
+      type: Number,
     },
     googleId: {
       type: String,
@@ -36,6 +36,12 @@ const User = new Schema(
     type: {
       type: Number,
       default: 1, // 0: Admin | 1: User
+    },
+    forgotPasswordCode: {
+      type: String,
+    },
+    activationCode: {
+      type: String,
     },
   },
   {
