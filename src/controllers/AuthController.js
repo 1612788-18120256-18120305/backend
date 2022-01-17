@@ -1,7 +1,9 @@
-const bcrypt = require('bcrypt');
-const authenticate = require('../authenticate');
-const User = require('../models/User');
-const _ = require('lodash');
+const nodemailer = require('nodemailer');
+const bcrypt = require("bcrypt");
+const authenticate = require("../authenticate");
+const User = require("../models/User");
+const { email, CLIENT_URL } = require('../config/mainConfig');
+const _ = require("lodash");
 
 module.exports = {
   // [POST] /auth/login
@@ -65,6 +67,31 @@ module.exports = {
       /// Send mail to get activationCode here ////////////////////////
       /// URL: {EP}/auth/activation?activationCode={activationCode} ///
       /////////////////////////////////////////////////////////////////
+      const link = `${CLIENT_URL}/auth/activation?activationCode=${newUser.activationCode}`;
+        const message = `<p>Click this link to activate your account: <a href="${link}">Link</a></p>`
+        // create reusable transporter object using the default SMTP transport
+        let transporter = nodemailer.createTransport({
+          host: 'smtp.gmail.com',
+          port: 587,
+          secure: false, // true for 465, false for other ports
+          auth: {
+            user: email.account, // generated ethereal user
+            pass: email.password, // generated ethereal password
+          },
+          tls: {
+            rejectUnauthorized: false,
+          },
+        });
+
+        // send mail with defined transport object
+        let info = await transporter.sendMail({
+          from: '"CoursePin" <coursepincourseroom@gmail.com>', // sender address
+          to: req.body.email, // list of receivers
+          subject: 'Activate your account', // Subject line
+          text: 'Activate your account', // plain text body
+          html: message, // html body
+        });
+
       res.json({
         code: res.statusCode,
         success: true,
@@ -142,10 +169,37 @@ module.exports = {
         /// Send mail to get postForgotPassword here //////////////
         /// URL: {EP}/auth/forgot-password/{forgotPasswordCode} ///
         //////////////////////////////////////////////////////////
+        ////
         const date = new Date();
         user.forgotPasswordCode =
           _.random(0, 1000000) + user.email + date.toLocaleTimeString();
         await user.save();
+
+        const link = `${CLIENT_URL}/auth/forgot-password/${user.forgotPasswordCode}`;
+        const message = `<p>Click this link to reset your password: <a href="${link}">Link</a></p>`
+        // create reusable transporter object using the default SMTP transport
+        let transporter = nodemailer.createTransport({
+          host: 'smtp.gmail.com',
+          port: 587,
+          secure: false, // true for 465, false for other ports
+          auth: {
+            user: email.account, // generated ethereal user
+            pass: email.password, // generated ethereal password
+          },
+          tls: {
+            rejectUnauthorized: false,
+          },
+        });
+
+        // send mail with defined transport object
+        let info = await transporter.sendMail({
+          from: '"CoursePin" <coursepincourseroom@gmail.com>', // sender address
+          to: req.body.email, // list of receivers
+          subject: 'Reset your password', // Subject line
+          text: 'Reset password', // plain text body
+          html: message, // html body
+        });
+        
         res.json({
           code: res.statusCode,
           success: true,
