@@ -1034,6 +1034,7 @@ module.exports = {
   getSingleReview: async (req, res, next) => {
     const reviewId = req.params.reviewId;
     const assignmentId = req.params.id;
+    const { isTeacher } = req;
     const review = await GradeReview.findById(reviewId);
     if (
       !review ||
