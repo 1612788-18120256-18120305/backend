@@ -1,7 +1,7 @@
-const bcrypt = require("bcrypt");
-const authenticate = require("../authenticate");
-const User = require("../models/User");
-const _ = require("lodash");
+const bcrypt = require('bcrypt');
+const authenticate = require('../authenticate');
+const User = require('../models/User');
+const _ = require('lodash');
 
 module.exports = {
   // [POST] /auth/login
@@ -10,21 +10,21 @@ module.exports = {
     const user = await User.findOne({ email: req.body.email });
     if (
       user &&
-      (await bcrypt.compare(req.body.password, user ? user.password : ""))
+      (await bcrypt.compare(req.body.password, user ? user.password : ''))
     ) {
       if (!user.status)
         return res.json({
           status: res.statusCode,
           success: false,
           message:
-            "Your account has been disabled. Please contact the administrator.",
+            'Your account has been disabled. Please contact the administrator.',
         });
-      if (user.activationCode != "")
+      if (user.activationCode != '' && user.activationCode !== undefined)
         return res.json({
           status: res.statusCode,
           success: false,
           message:
-            "Your account has not been activated. Please double-check your email.",
+            'Your account has not been activated. Please double-check your email.',
         });
       const jwt = authenticate.getToken(user);
       res.json({
@@ -39,7 +39,7 @@ module.exports = {
       res.json({
         code: res.statusCode,
         success: false,
-        message: "Incorrect email or password",
+        message: 'Incorrect email or password',
       });
     }
   },
@@ -51,7 +51,7 @@ module.exports = {
       res.json({
         code: res.statusCode,
         success: false,
-        message: "The user already exists!",
+        message: 'The user already exists!',
       });
     } else {
       const newUser = new User(req.body);
@@ -69,7 +69,7 @@ module.exports = {
         code: res.statusCode,
         success: true,
         message:
-          "Successful account registration. An email has been sent. Please check your inbox.",
+          'Successful account registration. An email has been sent. Please check your inbox.',
       });
     }
   },
@@ -88,7 +88,7 @@ module.exports = {
       res.json({
         code: res.statusCode,
         success: false,
-        message: "Unauthorized",
+        message: 'Unauthorized',
       });
     }
   },
@@ -100,21 +100,21 @@ module.exports = {
       return res.status(401).json({
         code: res.statusCode,
         success: false,
-        message: "The admin does not exist!",
+        message: 'The admin does not exist!',
       });
     }
     if ((await bcrypt.compare(req.body.password, user.password)) === false) {
       return res.status(401).json({
         code: res.statusCode,
         success: false,
-        message: "Incorrect password!",
+        message: 'Incorrect password!',
       });
     }
     if (user.type !== 0) {
       return res.status(401).json({
         code: res.statusCode,
         success: false,
-        message: "You are not an admin!",
+        message: 'You are not an admin!',
       });
     }
     const jwt = authenticate.getToken(user);
@@ -135,7 +135,7 @@ module.exports = {
           status: res.statusCode,
           success: false,
           message:
-            "Your account has been disabled. Please contact the administrator.",
+            'Your account has been disabled. Please contact the administrator.',
         });
       } else {
         ///////////////////////////////////////////////////////////
@@ -149,14 +149,14 @@ module.exports = {
         res.json({
           code: res.statusCode,
           success: true,
-          message: "An email has been sent. Please check your inbox.",
+          message: 'An email has been sent. Please check your inbox.',
         });
       }
     } else {
       res.json({
         code: res.statusCode,
         success: false,
-        message: "Email not found!",
+        message: 'Email not found!',
       });
     }
   },
@@ -172,13 +172,13 @@ module.exports = {
           status: res.statusCode,
           success: false,
           message:
-            "Your account has been disabled. Please contact the administrator.",
+            'Your account has been disabled. Please contact the administrator.',
         });
       } else {
         res.json({
           code: res.statusCode,
           success: true,
-          message: "OK",
+          message: 'OK',
           email: user.email,
         });
       }
@@ -186,7 +186,7 @@ module.exports = {
       res.json({
         code: res.statusCode,
         success: false,
-        message: "Invalid link!",
+        message: 'Invalid link!',
       });
     }
   },
@@ -202,23 +202,23 @@ module.exports = {
           status: res.statusCode,
           success: false,
           message:
-            "Your account has been disabled. Please contact the administrator.",
+            'Your account has been disabled. Please contact the administrator.',
         });
       } else {
         user.password = bcrypt.hashSync(req.body.password, 10);
-        user.forgotPasswordCode = "";
+        user.forgotPasswordCode = '';
         await user.save();
         res.json({
           code: res.statusCode,
           success: true,
-          message: "Password reset successful.",
+          message: 'Password reset successful.',
         });
       }
     } else {
       res.json({
         code: res.statusCode,
         success: false,
-        message: "Invalid link!",
+        message: 'Invalid link!',
       });
     }
   },
@@ -234,22 +234,22 @@ module.exports = {
           status: res.statusCode,
           success: false,
           message:
-            "Your account has been disabled. Please contact the administrator.",
+            'Your account has been disabled. Please contact the administrator.',
         });
       } else {
-        user.activationCode = "";
+        user.activationCode = '';
         await user.save();
         res.json({
           code: res.statusCode,
           success: true,
-          message: "Account activation successful.",
+          message: 'Account activation successful.',
         });
       }
     } else {
       res.json({
         code: res.statusCode,
         success: false,
-        message: "Invalid link!",
+        message: 'Invalid link!',
       });
     }
   },
