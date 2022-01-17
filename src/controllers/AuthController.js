@@ -206,7 +206,8 @@ module.exports = {
         });
       } else {
         user.password = bcrypt.hashSync(req.body.password, 10);
-        await user.save()
+        user.forgotPasswordCode = "";
+        await user.save();
         res.json({
           code: res.statusCode,
           success: true,
