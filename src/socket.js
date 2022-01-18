@@ -25,8 +25,12 @@ const registerAuth = () => {
         console.log('Authenticated: ', socket.id);
         socket.auth = true;
         socket.user = decoded;
-        io.in(socket.id).socketsJoin('authenticated');
+        socket.join('authenticated');
       }
+    });
+    socket.on('disconnect', () => {
+      console.log('Disconnected: ', socket.id);
+      socket.leave('authenticated');
     });
     setTimeout(function () {
       if (!socket.auth) {
@@ -37,9 +41,12 @@ const registerAuth = () => {
   });
 };
 
-const sendNotice = (userId, message) => {
-  _.each(io.in('authenticated').fetchSockets(), (socket) => {
-    if (socket.user._id === userId) {
+const sendNotice = async (userId, message) => {
+  const sockets = await io.in('authenticated').fetchSockets();
+  console.log(sockets.length);
+  _.each(sockets, (socket) => {
+    if (socket.user._id == userId.toString()) {
+      console.log('Sending notice to ', socket.id);
       socket.emit('notice', { message });
     }
   });

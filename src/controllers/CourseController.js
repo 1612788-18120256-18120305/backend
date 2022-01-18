@@ -873,8 +873,8 @@ module.exports = {
     assignment.grades = grades;
     try {
       await assignment.save();
-      newGrades.forEach((item) => {
-        notificationService.gradeFinalizeNotification(
+      newGrades.forEach(async (item) => {
+        await notificationService.gradeFinalizeNotification(
           course._id,
           assignment,
           item.id,
@@ -987,7 +987,7 @@ module.exports = {
     });
     try {
       await newReview.save();
-      notificationService.newGradeReviewNotification(
+      await notificationService.newGradeReviewNotification(
         course,
         req.user._id,
         req.user.name,
@@ -1035,6 +1035,7 @@ module.exports = {
   getSingleReview: async (req, res, next) => {
     const reviewId = req.params.reviewId;
     const assignmentId = req.params.id;
+    const { isTeacher } = req;
     const review = await GradeReview.findById(reviewId);
     if (
       !review ||
@@ -1124,7 +1125,7 @@ module.exports = {
     try {
       await review.save();
       if (student)
-        notificationService.newCommentNotification(
+        await notificationService.newCommentNotification(
           course._id,
           student._id,
           req.user._id,
@@ -1174,7 +1175,7 @@ module.exports = {
       try {
         await review.save();
         if (student)
-          notificationService.markReviewNotification(
+          await notificationService.markReviewNotification(
             course._id,
             student._id,
             req.user._id,
