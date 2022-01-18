@@ -771,6 +771,7 @@ module.exports = {
     if (filterAssignment.length > 0) {
       for (let i = 0; i < assignment.grades.length; i++) {
         if (assignment.grades[i].id.toString() === studentId.toString()) {
+          assignment.grades[i].draft = true;
           assignment.grades[i].grade = grade;
         }
       }

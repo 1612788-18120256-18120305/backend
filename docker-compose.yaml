@@ -1,0 +1,19 @@
+version: '3'
+
+services:
+  frontend:
+    image: lequocdat0404/frontend
+    ports:
+      - 3000:3000
+    depends_on:
+      - backend
+
+  admin:
+    image: lequocdat0404/admin
+    ports:
+      - 3001:3001
+
+  backend:
+    image: lequocdat0404/backend
+    ports:
+      - 8000:8000
