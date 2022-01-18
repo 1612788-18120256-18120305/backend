@@ -783,6 +783,12 @@ module.exports = {
     }
     try {
       await assignment.save();
+      await notificationService.gradeFinalizeNotification(
+        course._id,
+        assignment,
+        studentId,
+        req.user._id
+      );
       res.json({
         code: res.statusCode,
         success: true,
@@ -872,8 +878,8 @@ module.exports = {
     assignment.grades = grades;
     try {
       await assignment.save();
-      newGrades.forEach((item) => {
-        notificationService.gradeFinalizeNotification(
+      newGrades.forEach(async (item) => {
+        await notificationService.gradeFinalizeNotification(
           course._id,
           assignment,
           item.id,
@@ -986,7 +992,7 @@ module.exports = {
     });
     try {
       await newReview.save();
-      notificationService.newGradeReviewNotification(
+      await notificationService.newGradeReviewNotification(
         course,
         req.user._id,
         req.user.name,
@@ -1124,7 +1130,7 @@ module.exports = {
     try {
       await review.save();
       if (student)
-        notificationService.newCommentNotification(
+        await notificationService.newCommentNotification(
           course._id,
           student._id,
           req.user._id,
@@ -1174,7 +1180,7 @@ module.exports = {
       try {
         await review.save();
         if (student)
-          notificationService.markReviewNotification(
+          await notificationService.markReviewNotification(
             course._id,
             student._id,
             req.user._id,

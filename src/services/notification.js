@@ -71,14 +71,16 @@ module.exports = {
   ) => {
     if (!course) return;
     const notifyAll = course.teachers.map((teacher) => {
+      const teacherId = teacher.toString();
+      console.log('teacher: ', teacherId);
       const newNotification = new Notification({
-        userId: teacher,
+        userId: teacherId,
         sender: senderId,
         type: 'NEW_GRADE_REVIEW',
         message: `${senderName} đã yêu cầu đánh giá ${assignment.name}`,
         course: course._id,
       });
-      socket.sendNotice(teacher, newNotification);
+      socket.sendNotice(teacherId, newNotification);
       return newNotification.save();
     });
     await Promise.all(notifyAll);
