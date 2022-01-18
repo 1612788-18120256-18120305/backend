@@ -783,12 +783,6 @@ module.exports = {
     }
     try {
       await assignment.save();
-      await notificationService.gradeFinalizeNotification(
-        course._id,
-        assignment,
-        studentId,
-        req.user._id
-      );
       res.json({
         code: res.statusCode,
         success: true,
