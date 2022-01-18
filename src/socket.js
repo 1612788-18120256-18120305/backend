@@ -21,13 +21,16 @@ const registerAuth = () => {
     socket.auth = false;
     socket.on('authenticate', (data) => {
       const decoded = checkToken(data.token);
-      console.log(decoded);
       if (decoded) {
         console.log('Authenticated: ', socket.id);
         socket.auth = true;
         socket.user = decoded;
         socket.join('authenticated');
       }
+    });
+    socket.on('disconnect', () => {
+      console.log('Disconnected: ', socket.id);
+      socket.leave('authenticated');
     });
     setTimeout(function () {
       if (!socket.auth) {
